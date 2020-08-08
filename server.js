@@ -11,10 +11,15 @@ mongoose.connect(process.env.MONGO_URI || "mongodb://localhost/shop", {
 });
 
 const db = mongoose.connection;
-db.on("error", console.error.bind(console, "connection error:"));
 db.once("open", function () {
   console.log("database is connected");
 });
+db.on("error", (e) => {
+  console.log(e);
+});
+// db.collections.stocks.drop(() => {
+//   console.log('dropped');
+// })
 
 const cors = require("cors");
 const stock = require("./stock");
@@ -40,18 +45,17 @@ app.get("/", function (req, res) {
 //adding stock
 app.post("/", function (req, res) {
   if (req.body.name === undefined || "" || req.body.qty === undefined || "") {
-    console.log(req.body);
     res.json({
       msg: "form data incomplete",
     });
   } else {
     const newStock = {
-      name: req.body.name.toString(),
+      name: req.body.name.toLowerCase().toString(),
       qty: req.body.qty,
     };
     stockModel
       .findOne({
-        name: req.body.name,
+        name: newStock.name,
       })
       .then((stock) => {
         if (!stock) {
@@ -83,6 +87,56 @@ app.post("/", function (req, res) {
   }
 });
 
+//adding sale
+app.post("/sale", async function (req, res) {
+  let resp = [];
+  let errm = [];
+  let count = 0;
+  const result = await req.body.forEach((item) => {
+    count++;
+    stockModel
+      .findOne({ name: item.name.toLowerCase().toString() })
+      .then((doc) => {
+        if (!doc) {
+          res.json({
+            status: "error",
+            msg: "Stocks invalid",
+          });
+        } else {
+          doc.qty = doc.qty - item.qty;
+          doc
+            .save()
+            .then((dc) => {
+              resp.push("saved " + dc.name +' :' + dc.qty);
+              if (count === req.body.length) {
+                res.json({
+                  status: 'success',
+                  info : JSON.stringify(resp)
+                })
+              }
+            })
+            .catch((err) => {
+              errm.push("error occured on item :" + count);
+              if (count === req.body.length && errm.length === req.body.length) {
+                 res.json({
+                   status: "error",
+                   info: JSON.stringify(errm),
+                 });
+              } else {
+                return;
+               }
+            });
+        }
+      })
+      .catch((err) => {
+        res.json({
+          status: 'error',
+          msg: 'cannot update sales'
+        })
+      });
+  });
+});
+
 app.delete("/", function (req, res) {
   stockModel
     .findOneAndDelete({
@@ -102,27 +156,26 @@ app.delete("/", function (req, res) {
 });
 
 app.put("/", function (req, res) {
-  const update = {
-    name: req.body.name,
-    qty: req.body.qty
-}
-   stockModel.findOneAndUpdate(req.body.name, update, {
-     new: true,
-     useFindAndModify: false,
+  stockModel
+    .findOne({
+      name: req.body.name
+    })
+    .then((doc) => {
+      doc.updateOne({qty : req.body.qty}).then((dck) => {
+        console.log(dck);
+        res.json({
+          status: 'success',
+          message: 'updated'
+     })
    })
-   .then((doc) => {
-     res.json({
-       msg: "sucess",
-       doc,
-     });
-   })
-   .catch((err) => {
-     res.json({
-       status: "failed",
-       error: err.message,
-     });
-   });
-})
+    })
+    .catch((err) => {
+      res.json({
+        status: "failed",
+        error: 'stock does not exist in database',
+      });
+    });
+});
 
 app.get("*", function (req, res) {
   res.status(404).send({ error: "page does not exist. Winter is Coming!!" });
