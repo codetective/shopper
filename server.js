@@ -53,24 +53,24 @@ app.post('/login', function (req, res) {
     })
   } else {
     try {
-      // userModel.findOne({ name: req.body.name }).then(doc => {
-      //   if (doc.name !== req.body.name && doc.password !== req.body.password || doc.name !== req.body.name || doc.password !== req.body.password) {
-      //     res.json({
-      //       error: 'invalid user'
-      //     })
-      //   } else {
-      //     res.json({
-      //       name: doc.name,
-      //       msg: 'user found'
-      //     })
-      //   }
-      // })
-      userModel.create({name: req.body.name, password: req.body.password})
-        .then((docs) => {
+      userModel.findOne({ name: req.body.name }).then(doc => {
+        if (doc.name !== req.body.name && doc.password !== req.body.password || doc.name !== req.body.name || doc.password !== req.body.password) {
           res.json({
-          docs
-        })
+            error: 'invalid user'
+          })
+        } else {
+          res.json({
+            name: doc.name,
+            msg: 'user found'
+          })
+        }
       })
+      // userModel.create({name: req.body.name, password: req.body.password})
+      //   .then((docs) => {
+      //     res.json({
+      //     docs
+      //   })
+      // })
     } catch (e) {
       console.log(e)
     }
