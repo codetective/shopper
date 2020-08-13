@@ -8,7 +8,8 @@ const stockSchema = new mongoose.Schema({
   qty: {
     type: Number,
     require: true,
+    min: 1
   }
 })
 
-module.exports = mongoose.model("stock", stockSchema);
+module.exports = mongoose.model('stock', stockSchema)

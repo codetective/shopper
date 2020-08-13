@@ -8,6 +8,14 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     require: true
+  },
+  role: {
+    type: String,
+    required: true
+  },
+  date: {
+    type: Date,
+    default: Date.now
   }
 })
 
