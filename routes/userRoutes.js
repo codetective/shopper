@@ -12,7 +12,7 @@ const {
 router.use(cors())
 
 router.post('/login', loginUser)
-router.post('/register', regUsers)
+router.post('/register', config.admin, regUsers)
 router.get('/users', getUsers)
 router.delete('/delete', config.admin, deleteUser)
 

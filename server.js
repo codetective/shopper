@@ -25,9 +25,6 @@ mongoose
   .catch(err => {
     console.log(err)
   })
-mongoose.connection.collections.users.drop(() => {
-    console.log('dropped');
-  })
 
 app.use('/', userRoutes)
 app.use('/', stockRoutes)
