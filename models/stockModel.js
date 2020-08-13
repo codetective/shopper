@@ -8,7 +8,7 @@ const stockSchema = new mongoose.Schema({
   qty: {
     type: Number,
     require: true,
-    min: 1
+    min: 0
   }
 })
 
